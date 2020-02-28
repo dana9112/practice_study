@@ -7,18 +7,20 @@ import java.util.ArrayList;
 import java.util.List;
 import com.eomcs.lms.dao.PhotoFileDao;
 import com.eomcs.lms.domain.PhotoFile;
+import com.eomcs.util.ConnectionFactory;
 
 public class PhotoFileDaoImpl implements PhotoFileDao {
 
-  Connection con;
+  ConnectionFactory conFactory;
 
-  public PhotoFileDaoImpl(Connection con) {
-    this.con = con;
+  public PhotoFileDaoImpl(ConnectionFactory conFactory) {
+    this.conFactory = conFactory;
   }
 
   @Override
   public int insert(PhotoFile photoFile) throws Exception {
-    try (Statement stmt = con.createStatement()) {
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement()) {
 
       int result = stmt.executeUpdate("insert into lms_photo_file(photo_id, file_path) values(" //
           + photoFile.getBoardNo() + ",'" + photoFile.getFilepath() + "')");
@@ -31,7 +33,8 @@ public class PhotoFileDaoImpl implements PhotoFileDao {
 
   @Override
   public List<PhotoFile> findAll(int boardNo/* 게시물 번호 */) throws Exception {
-    try (Statement stmt = con.createStatement();
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement();
 
         // MariaDB의 lms_PhotoBoard 테이블에 있는 데이터를 가져올 도구를 준비
         ResultSet rs = stmt.executeQuery( // 테스트 꼭 하고 실행하기
@@ -63,7 +66,8 @@ public class PhotoFileDaoImpl implements PhotoFileDao {
 
   @Override
   public int deleteAll(int boardNo) throws Exception {
-    try (Statement stmt = con.createStatement()) {
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement()) {
       int result = stmt.executeUpdate(//
           "delete from lms_photo_file " // 게시글을 지우는 것이 아니라 첨부파일을 지우는 것
               + " where photo_id=" + boardNo);

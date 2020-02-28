@@ -7,18 +7,20 @@ import java.util.ArrayList;
 import java.util.List;
 import com.eomcs.lms.dao.MemberDao;
 import com.eomcs.lms.domain.Member;
+import com.eomcs.util.ConnectionFactory;
 
 public class MemberDaoImpl implements MemberDao {
 
-  Connection con;
+  ConnectionFactory conFactory;
 
-  public MemberDaoImpl(Connection con) {
-    this.con = con;
+  public MemberDaoImpl(ConnectionFactory conFactory) {
+    this.conFactory = conFactory;
   }
 
   @Override
   public int insert(Member member) throws Exception {
-    try (Statement stmt = con.createStatement()) {
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement()) {
 
       int result = stmt.executeUpdate("insert into lms_member(name, email, pwd, tel, photo) "
           + "values('" + member.getName() + "', '" + member.getEmail() + "', '"
@@ -30,7 +32,8 @@ public class MemberDaoImpl implements MemberDao {
 
   @Override
   public List<Member> findAll() throws Exception {
-    try (Statement stmt = con.createStatement();
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery( //
             "select member_id, name, email, tel, cdt from lms_member")) {
 
@@ -54,7 +57,8 @@ public class MemberDaoImpl implements MemberDao {
 
   @Override
   public Member findByNo(int no) throws Exception {
-    try (Statement stmt = con.createStatement();
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery( //
             "select member_id, name, email, pwd, tel, photo" + " from lms_member"
                 + " where member_id=" + no)) {
@@ -77,7 +81,8 @@ public class MemberDaoImpl implements MemberDao {
 
   @Override
   public int update(Member member) throws Exception {
-    try (Statement stmt = con.createStatement()) {
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement()) {
 
       int result =
           stmt.executeUpdate("update lms_member set name= '" + member.getName() + "', email='"
@@ -90,7 +95,8 @@ public class MemberDaoImpl implements MemberDao {
 
   @Override
   public int delete(int no) throws Exception {
-    try (Statement stmt = con.createStatement()) {
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement()) {
 
       int result = stmt.executeUpdate("delete from lms_member where member_id=" + no);
 
@@ -101,7 +107,8 @@ public class MemberDaoImpl implements MemberDao {
 
   @Override
   public List<Member> findByKeyword(String keyword) throws Exception { // 조건에 일치하는 것만 셀렉션 한다.
-    try (Statement stmt = con.createStatement();
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery( //
             "select member_id, name, email, tel, cdt" //
                 + " from lms_member" //

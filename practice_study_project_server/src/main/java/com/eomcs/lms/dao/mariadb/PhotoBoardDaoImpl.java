@@ -8,19 +8,21 @@ import java.util.List;
 import com.eomcs.lms.dao.PhotoBoardDao;
 import com.eomcs.lms.domain.Lesson;
 import com.eomcs.lms.domain.PhotoBoard;
+import com.eomcs.util.ConnectionFactory;
 
 public class PhotoBoardDaoImpl implements PhotoBoardDao {
 
-  Connection con;
+  ConnectionFactory conFactory;
 
-  public PhotoBoardDaoImpl(Connection con) {
-    this.con = con;
+  public PhotoBoardDaoImpl(ConnectionFactory conFactory) {
+    this.conFactory = conFactory;
   }
 
   @Override
   public int insert(PhotoBoard photoBoard) throws Exception { // photoBoar의 주소를 가지고 오는 것이다. (객체를 가지고
                                                               // 오는게 아니고)
-    try (Statement stmt = con.createStatement()) {
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement()) {
 
 
       int result = stmt.executeUpdate("insert into lms_photo(titl, lesson_id) values('" //
@@ -46,7 +48,8 @@ public class PhotoBoardDaoImpl implements PhotoBoardDao {
 
   @Override
   public List<PhotoBoard> findAllByLessonNo(int lessonNo) throws Exception {
-    try (Statement stmt = con.createStatement();
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement();
 
         // MariaDB의 lms_PhotoBoard 테이블에 있는 데이터를 가져올 도구를 준비
         ResultSet rs = stmt.executeQuery( //
@@ -76,7 +79,8 @@ public class PhotoBoardDaoImpl implements PhotoBoardDao {
 
   @Override
   public PhotoBoard findByNo(int no) throws Exception {
-    try (Statement stmt = con.createStatement();
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery( //
             "select" //
                 + " p.photo_id," //
@@ -115,7 +119,8 @@ public class PhotoBoardDaoImpl implements PhotoBoardDao {
 
   @Override
   public int update(PhotoBoard photoBoard) throws Exception {
-    try (Statement stmt = con.createStatement()) {
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement()) {
 
       int result = stmt.executeUpdate(//
           "update lms_photo set titl = '" + photoBoard.getTitle() + "' where photo_id="
@@ -127,7 +132,8 @@ public class PhotoBoardDaoImpl implements PhotoBoardDao {
 
   @Override
   public int delete(int no) throws Exception {
-    try (Statement stmt = con.createStatement()) {
+    try (Connection con = conFactory.getConnection(); //
+        Statement stmt = con.createStatement()) {
       int result = stmt.executeUpdate("delete from lms_photo " + " where photo_id=" + no);
       return result;
     }

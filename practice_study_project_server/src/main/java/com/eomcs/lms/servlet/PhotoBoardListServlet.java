@@ -36,6 +36,7 @@ public class PhotoBoardListServlet implements Servlet {
     out.printf("수업명: %s\n", lesson.getTitle());
     out.println("---------------------------------------------------------------");
 
+
     // 4) 해당 수업의 사진게시글을 가져온다.
     List<PhotoBoard> photoBoards = photoBoardDao.findAllByLessonNo(lessonNo);
 

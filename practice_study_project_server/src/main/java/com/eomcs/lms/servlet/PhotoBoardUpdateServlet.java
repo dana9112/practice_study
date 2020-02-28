@@ -4,21 +4,23 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import com.eomcs.lms.DataLoaderListener;
 import com.eomcs.lms.dao.PhotoBoardDao;
 import com.eomcs.lms.dao.PhotoFileDao;
 import com.eomcs.lms.domain.PhotoBoard;
 import com.eomcs.lms.domain.PhotoFile;
+import com.eomcs.sql.PlatformTransactionManager;
 import com.eomcs.util.Prompt;
 
 public class PhotoBoardUpdateServlet implements Servlet {
 
+  PlatformTransactionManager txManager;
   PhotoBoardDao photoBoardDao;
   PhotoFileDao photoFileDao;
 
-  public PhotoBoardUpdateServlet( //
+  public PhotoBoardUpdateServlet(PlatformTransactionManager txManager, //
       PhotoBoardDao photoBoardDao, //
       PhotoFileDao photoFileDao) {
+    this.txManager = txManager;
     this.photoBoardDao = photoBoardDao;
     this.photoFileDao = photoFileDao;
   }
@@ -40,8 +42,8 @@ public class PhotoBoardUpdateServlet implements Servlet {
         old.getTitle()));
     photoBoard.setNo(no);
 
+    txManager.beignTransaction();
 
-    DataLoaderListener.con.setAutoCommit(false);
 
     try {
       if (photoBoardDao.update(photoBoard) == 0) {
@@ -68,13 +70,12 @@ public class PhotoBoardUpdateServlet implements Servlet {
           photoFileDao.insert(photoFile);
         }
       }
-
+      txManager.commit();
       out.println("사진 게시글을 변경했습니다.");
+
     } catch (Exception e) {
+      txManager.rollback();
       out.println(e.getMessage());
-      DataLoaderListener.con.rollback();
-    } finally {
-      DataLoaderListener.con.setAutoCommit(true);
     }
   }
 
