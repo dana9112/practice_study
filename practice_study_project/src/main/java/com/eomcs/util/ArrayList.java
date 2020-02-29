@@ -85,10 +85,7 @@ public class ArrayList<E> {
 
   public void add(int index, E value) {
     if (this.size == this.elementDate.length) {
-      int oldSize = this.elementDate.length;
-      int newSize = oldSize + (oldSize >> 1);
-
-      this.elementDate = Arrays.copyOf(this.elementDate, newSize);
+      grow();
     }
 
     for (int i = size - 1; i >= index; i--)

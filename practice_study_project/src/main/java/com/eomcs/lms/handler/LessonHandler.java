@@ -59,16 +59,16 @@ public class LessonHandler {
   }
 
   public void detailLesson() {
-    System.out.println("수업 인덱스? ");
-    int index = input.nextInt();
+    System.out.println("번호? ");
+    int no = input.nextInt();
     input.nextLine();
 
-    Lesson lesson = this.lessonList.get(index);
-
-    if (lesson == null) {
+    int index = indexOfLesson(no);
+    if (index == -1) {
       System.out.println("수업 인덱스가 유효하지 않습니다.");
       return;
     }
+    Lesson lesson = this.lessonList.get(index);
     System.out.printf("번호: %d\n", lesson.getNo());
     System.out.printf("수업명: %s\n", lesson.getTitle());
     System.out.printf("수업내용: %s\n", lesson.getDescription());
@@ -78,16 +78,17 @@ public class LessonHandler {
   }
 
   public void updateLesson() {
-    System.out.println("수업 인덱스? ");
-    int index = input.nextInt();
+    System.out.println("번호? ");
+    int no = input.nextInt();
     input.nextLine();
 
-    Lesson oldLesson = this.lessonList.get(index);
-
-    if (oldLesson == null) {
-      System.out.println("수업 인덱스가 유효하지 않습니다.");
+    int index = indexOfLesson(no);
+    if (index == -1) {
+      System.out.println("해당 번호의 수업이 유효하지 않습니다.");
       return;
     }
+
+    Lesson oldLesson = this.lessonList.get(index);
     boolean changed = false;
     String inputStr = null;
     Lesson newLesson = new Lesson();
@@ -161,18 +162,27 @@ public class LessonHandler {
   }
 
   public void deleteLesson() {
-    System.out.println("수업 인덱스? ");
-    int index = input.nextInt();
+    System.out.println("번호? ");
+    int no = input.nextInt();
     input.nextLine();
 
-    Lesson lesson = this.lessonList.get(index);
-
-    if (lesson == null) {
-      System.out.println("수업 인덱스가 유효하지 않습니다.");
+    int index = indexOfLesson(no);
+    if (index == -1) {
+      System.out.println("해당 번호의 수업이 유효하지 않습니다.");
       return;
     }
+
     this.lessonList.remove(index);
     System.out.println("수업이 삭제되었습니다.");
+  }
+
+  private int indexOfLesson(int no) {
+    for (int i = 0; i < lessonList.size(); i++) {
+      if (lessonList.get(i).getNo() == no) {
+        return i;
+      }
+    }
+    return -1;
   }
 
 

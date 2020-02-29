@@ -58,17 +58,17 @@ public class MemberHandler {
   }
 
   public void detailMember() {
-    System.out.println("회원 인덱스? ");
-    int index = input.nextInt();
+    System.out.println("회원 번호? ");
+    int no = input.nextInt();
     input.nextLine();
 
-    Member member = this.memberList.get(index);
-
-    if (member == null) {
+    int index = indexOfMember(no);
+    if (index == -1) {
       System.out.println("해당 회원을 찾을 수 없습니다.");
       return;
     }
 
+    Member member = this.memberList.get(index);
     System.out.printf("번호? %d\n", member.getNo());
     System.out.printf("이름? %s\n", member.getName());
     System.out.printf("이메일: %s\n", member.getEmail());
@@ -78,20 +78,23 @@ public class MemberHandler {
   }
 
   public void updateMember() {
-    System.out.println("회원 인덱스? ");
-    int index = input.nextInt();
+    System.out.print("회원 번호? ");
+    int no = input.nextInt();
     input.nextLine();
 
-    Member oldMember = this.memberList.get(index);
-
-    if (oldMember == null) {
-      System.out.println("회원 인덱스가 유효하지 않습니다.");
+    int index = indexOfMember(no);
+    if (index == -1) {
+      System.out.println("해당 번호의 회원이 유효하지 않습니다.");
       return;
     }
+
+    Member oldMember = this.memberList.get(index);
 
     boolean changed = false;
     String inputStr = null;
     Member newMember = new Member();
+
+    newMember.setNo(oldMember.getNo());
 
     System.out.print("이름? ");
     inputStr = input.nextLine();
@@ -102,7 +105,7 @@ public class MemberHandler {
       changed = true;
     }
 
-    System.out.print("이메일(%s) ");
+    System.out.printf("이메일(%s)? ", oldMember.getEmail());
     inputStr = input.nextLine();
     if (inputStr.length() == 0) {
       newMember.setEmail(oldMember.getEmail());
@@ -111,7 +114,7 @@ public class MemberHandler {
       changed = true;
     }
 
-    System.out.print("사진(%s) ");
+    System.out.printf("사진(%s)? ", oldMember.getPhoto());
     inputStr = input.nextLine();
     if (inputStr.length() == 0) {
       newMember.setPhoto(oldMember.getPhoto());
@@ -120,7 +123,7 @@ public class MemberHandler {
       changed = true;
     }
 
-    System.out.print("전화(%s) ");
+    System.out.printf("전화(%s)? ", oldMember.getTel());
     inputStr = input.nextLine();
     if (inputStr == null) {
       newMember.setTel(oldMember.getTel());
@@ -139,18 +142,27 @@ public class MemberHandler {
 
 
   public void deleteMember() {
-    System.out.println("회원 인덱스? ");
-    int index = input.nextInt();
+    System.out.println("회원 번호? ");
+    int no = input.nextInt();
     input.nextLine();
 
-    Member member = this.memberList.get(index);
-    if (member == null) {
+    int index = indexOfMember(no);
+    if (index == -1) {
       System.out.println("해당 회원을 찾을 수 없습니다.");
     }
 
     this.memberList.remove(index);
     System.out.println("회원 정보가 삭제되었습니다.");
 
+  }
+
+  private int indexOfMember(int no) {
+    for (int i = 0; i < memberList.size(); i++) {
+      if (memberList.get(i).getNo() == no) {
+        return i;
+      }
+    }
+    return -1;
   }
 
 
