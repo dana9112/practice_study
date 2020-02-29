@@ -4,6 +4,7 @@ import java.util.Scanner;
 import com.eomcs.lms.handler.BoardHandler;
 import com.eomcs.lms.handler.LessonHandler;
 import com.eomcs.lms.handler.MemberHandler;
+import com.eomcs.util.Prompt;
 
 public class App {
 
@@ -11,10 +12,11 @@ public class App {
 
   public static void main(String[] args) {
 
-    // BoardHandler의 메서드가 사용할 메모리만 게시판 마다 따로 생성한다.
-    BoardHandler boardHandler = new BoardHandler(keyboard);
-    LessonHandler lesssonHandler수업 = new LessonHandler(keyboard);
-    MemberHandler memberHandler = new MemberHandler(keyboard);
+    Prompt prompt = new Prompt(keyboard);
+
+    BoardHandler boardHandler = new BoardHandler(prompt);
+    LessonHandler lesssonHandler수업 = new LessonHandler(prompt);
+    MemberHandler memberHandler = new MemberHandler(prompt);
 
     String command;
 
