@@ -1,18 +1,18 @@
 package com.eomcs.lms.handler;
 
+import java.util.LinkedList;
 import com.eomcs.lms.domain.Lesson;
-import com.eomcs.util.ArrayList;
 import com.eomcs.util.Prompt;
 
 public class LessonHandler {
 
-  ArrayList<Lesson> lessonList;
+  LinkedList<Lesson> lessonList;
 
   Prompt prompt;
 
   public LessonHandler(Prompt prompt) {
     this.prompt = prompt;
-    this.lessonList = new ArrayList<>();
+    this.lessonList = new LinkedList<>();
   }
 
 

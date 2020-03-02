@@ -1,19 +1,19 @@
 package com.eomcs.lms.handler;
 
 import java.sql.Date;
+import java.util.LinkedList;
 import com.eomcs.lms.domain.Member;
-import com.eomcs.util.ArrayList;
 import com.eomcs.util.Prompt;
 
 public class MemberHandler {
 
-  ArrayList<Member> memberList;
+  LinkedList<Member> memberList;
 
   Prompt prompt;
 
   public MemberHandler(Prompt prompt) {
     this.prompt = prompt;
-    this.memberList = new ArrayList<>();
+    this.memberList = new LinkedList<>();
   }
 
   public void listMember() {
