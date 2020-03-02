@@ -5,17 +5,20 @@ import com.eomcs.lms.handler.BoardHandler;
 import com.eomcs.lms.handler.LessonHandler;
 import com.eomcs.lms.handler.MemberHandler;
 import com.eomcs.util.Prompt;
+import com.eomcs.util.Stack;
 
 public class App {
 
   static Scanner keyboard = new Scanner(System.in);
+
+  static Stack<String> commandStack = new Stack<>();
 
   public static void main(String[] args) {
 
     Prompt prompt = new Prompt(keyboard);
 
     BoardHandler boardHandler = new BoardHandler(prompt);
-    LessonHandler lesssonHandler수업 = new LessonHandler(prompt);
+    LessonHandler lessonHandler = new LessonHandler(prompt);
     MemberHandler memberHandler = new MemberHandler(prompt);
 
     String command;
@@ -24,21 +27,26 @@ public class App {
       System.out.print("\n명령> ");
       command = keyboard.nextLine();
 
+      if (command.length() == 0)
+        continue;
+
+      commandStack.push(command);
+
       switch (command) {
         case "/lesson/add":
-          lesssonHandler수업.addLesson();
+          lessonHandler.addLesson();
           break;
         case "/lesson/list":
-          lesssonHandler수업.listLesson();
+          lessonHandler.listLesson();
           break;
         case "/lesson/detail":
-          lesssonHandler수업.detailLesson();
+          lessonHandler.detailLesson();
           break;
         case "/lesson/update":
-          lesssonHandler수업.updateLesson();
+          lessonHandler.updateLesson();
           break;
         case "/lesson/delete":
-          lesssonHandler수업.deleteLesson();
+          lessonHandler.deleteLesson();
           break;
         case "/member/add":
           memberHandler.addMember();
@@ -70,7 +78,9 @@ public class App {
         case "/board/delete":
           boardHandler.deleteBoard();
           break;
-
+        case "history":
+          printCommandHistory();
+          break;
         default:
           if (!command.equalsIgnoreCase("quit")) {
             System.out.println("실행할 수 없는 명령입니다.");
@@ -82,6 +92,23 @@ public class App {
     System.out.println("안녕!");
 
     keyboard.close();
+  }
+
+  private static void printCommandHistory() {
+    Stack<String> historyStack = commandStack.clone();
+    int count = 0;
+    while (!historyStack.empty()) {
+      System.out.println(historyStack.pop());
+      count++;
+
+      if ((count % 5) == 0) {
+        System.out.print(":");
+        String str = keyboard.nextLine();
+        if (str.equalsIgnoreCase("q")) {
+          break;
+        }
+      }
+    }
   }
 }
 
