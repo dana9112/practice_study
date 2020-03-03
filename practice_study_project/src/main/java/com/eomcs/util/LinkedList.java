@@ -2,12 +2,12 @@ package com.eomcs.util;
 
 import java.lang.reflect.Array;
 
-public class LinkedList<E> {
+public class LinkedList<E> extends List<E> {
   Node<E> first;
   Node<E> last;
-  int size;
 
 
+  @Override
   public void add(E value) {
     Node<E> newNode = new Node<>();
     newNode.value = value;
@@ -21,6 +21,7 @@ public class LinkedList<E> {
     this.size++;
   }
 
+  @Override
   public E get(int index) {
     if (index < 0 || index >= size)
       return null;
@@ -32,6 +33,7 @@ public class LinkedList<E> {
     return cursor.value;
   }
 
+  @Override
   public void add(int index, E value) {
     if (index < 0 || index >= size)
       return;
@@ -54,6 +56,7 @@ public class LinkedList<E> {
     this.size++;
   }
 
+  @Override
   public E remove(int index) {
     if (index < 0 || index >= size)
       return null;
@@ -78,6 +81,7 @@ public class LinkedList<E> {
     return deletedNode.value;
   }
 
+  @Override
   public E set(int index, E value) {
     if (index < 0 || index > size)
       return null;
@@ -93,6 +97,7 @@ public class LinkedList<E> {
     return oldValue;
   }
 
+  @Override
   public Object[] toArray() {
     Object[] arr = new Object[size];
 
@@ -104,6 +109,7 @@ public class LinkedList<E> {
     return arr;
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   public E[] toArray(E[] arr) {
     if (arr.length < size) {
@@ -119,9 +125,6 @@ public class LinkedList<E> {
 
   }
 
-  public int size() {
-    return this.size;
-  }
 
   static class Node<T> {
     T value;
