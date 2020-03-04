@@ -1,16 +1,17 @@
 package com.eomcs.lms.handler;
 
 import com.eomcs.lms.domain.Lesson;
-import com.eomcs.util.AbstractList;
+import com.eomcs.util.Iterator;
+import com.eomcs.util.List;
 import com.eomcs.util.Prompt;
 
 public class LessonHandler {
 
-  AbstractList<Lesson> lessonList;
+  List<Lesson> lessonList;
 
   Prompt prompt;
 
-  public LessonHandler(Prompt prompt, AbstractList<Lesson> list) {
+  public LessonHandler(Prompt prompt, List<Lesson> list) {
     this.prompt = prompt;
     this.lessonList = list;
   }
@@ -32,10 +33,12 @@ public class LessonHandler {
   }
 
   public void listLesson() {
-    // 수업 객체 목록을 복사 받을 배열을 준비하고, toArray()를 실행한다.
-    // toArray()의 리턴 값은 파라미터로 넘겨준 배열의 주소이다.
-    Lesson[] arr = this.lessonList.toArray(new Lesson[this.lessonList.size()]);
-    for (Lesson l : arr) {
+    // 목록에서 값을 꺼내는 일을 해 줄 Iterator 객체를 준비한다.
+    Iterator<Lesson> iterator = lessonList.iterator();
+
+    // Iterator를 통해 값을 꺼낸 다.
+    while (iterator.hasNext()) {
+      Lesson l = iterator.next();
       System.out.printf("%d, %s, %s ~ %s, %d\n", l.getNo(), l.getTitle(), l.getStartDate(),
           l.getEndDate(), l.getTotalHours());
     }

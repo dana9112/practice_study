@@ -8,6 +8,7 @@ import com.eomcs.lms.handler.BoardHandler;
 import com.eomcs.lms.handler.LessonHandler;
 import com.eomcs.lms.handler.MemberHandler;
 import com.eomcs.util.ArrayList;
+import com.eomcs.util.Iterator;
 import com.eomcs.util.LinkedList;
 import com.eomcs.util.Prompt;
 import com.eomcs.util.Queue;
@@ -116,10 +117,10 @@ public class App {
           boardHandler.deleteBoard();
           break;
         case "history":
-          printCommandHistory();
+          printCommandHistory(commandStack.iterator());
           break;
         case "history2":
-          printCommandHistory2();
+          printCommandHistory(commandQueue.iterator());
           break;
         default:
           if (!command.equalsIgnoreCase("quit")) {
@@ -134,11 +135,17 @@ public class App {
     keyboard.close();
   }
 
-  private static void printCommandHistory() {
-    Stack<String> historyStack = commandStack.clone();
+
+  // 이전에는 Stack에서 값을 꺼내는 방법과 Queue에서 값을 꺼내는 방법이 다르기 떄문에
+  // printComandHistory() printCommandHistory2() 메서드를 따로 정의했다.
+  // 이제 Stack과 Queue는 일관된 방식으로 값을 꺼내주는 Iterator가 있기 때문에
+  // 두 메서드를 하나로 합칠 수 있다.
+  // 파라미터로 Iterator를 받아서 처리하기만 하면 된다.
+
+  private static void printCommandHistory(Iterator<String> iterator) {
     int count = 0;
-    while (!historyStack.empty()) {
-      System.out.println(historyStack.pop());
+    while (iterator.hasNext()) {
+      System.out.println(iterator.next());
       count++;
 
       if ((count % 5) == 0) {
@@ -151,21 +158,6 @@ public class App {
     }
   }
 
-  private static void printCommandHistory2() {
-    Queue<String> historyQueue = commandQueue.clone();
-    int count = 0;
-    while (historyQueue.size() > 0) {
-      System.out.println(historyQueue.poll());
-
-      if ((++count % 5) == 0) {
-        System.out.print(":");
-        String str = keyboard.nextLine();
-        if (str.equalsIgnoreCase("q")) {
-          break;
-        }
-      }
-    }
-  }
 
 }
 

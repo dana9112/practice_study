@@ -100,7 +100,10 @@ public class Stack<E> implements Cloneable {
 
     }
   }
-  // 11) 제네릭 적용
+
+  public Iterator<E> iterator() {
+    return new StackIterator<E>(this);
+  }
 
 }
 

@@ -4,7 +4,8 @@ package com.eomcs.lms.handler;
 
 import java.sql.Date;
 import com.eomcs.lms.domain.Board;
-import com.eomcs.util.AbstractList;
+import com.eomcs.util.Iterator;
+import com.eomcs.util.List;
 import com.eomcs.util.Prompt;
 
 public class BoardHandler {
@@ -16,11 +17,11 @@ public class BoardHandler {
   // => 이렇게 하면 ArrayList도 사용할 수 있고, LinkedList도 사용할 수 있어 유지보수에 좋다.
   // 즉 선택의 폭이 넓어진다.
 
-  AbstractList<Board> boardList;
+  List<Board> boardList;
 
   Prompt prompt;
 
-  public BoardHandler(Prompt prompt, AbstractList<Board> list) {
+  public BoardHandler(Prompt prompt, List<Board> list) {
     this.prompt = prompt;
     this.boardList = list;
     // Handler가 사용할 List 객체(의존 객체; dependency)를 생성자에서 직접 만들지 않고
@@ -35,8 +36,12 @@ public class BoardHandler {
   }
 
   public void listBoard() {
-    Board[] arr = this.boardList.toArray(new Board[this.boardList.size()]);
-    for (Board b : arr) {
+    // iterator 준비
+    Iterator<Board> iterator = boardList.iterator();
+
+    // iterator 값 꺼내기
+    while (iterator.hasNext()) {
+      Board b = iterator.next();
       System.out.printf("%d, %s, %s, %d\n", b.getNo(), b.getTitle(), b.getDate(), b.getViewCount());
     }
   }
