@@ -23,18 +23,13 @@ public class Queue<E> extends LinkedList<E> implements Cloneable {
 
   @Override
   public Iterator<E> iterator() {
-    // local class: 특정 메서드 안에서만 사용하는 중첩 클래스라면 그 메서드 안에 둔다.
-    class QueueIterator<T> implements Iterator<T> {
+    
+    // annoymous class : 인스턴스를 한 개만 생성할 경우 로컬 클래스를 익명 클래스로 정의하라
+    return new Iterator<E>() {
 
-      Queue<T> queue;
-
-      @SuppressWarnings("unchecked")
-      public QueueIterator(Queue<T> queue) {
-        // 바깥 클래스의 this (주소)를 사용하고 싶을 때
-        // "클래스명.this"를 사용해야 함
-        this.queue = (Queue<T>) Queue.this.clone();
-      }
-
+      // 단순히 값을 할당하느 경우에는 인스턴스 블록에 넣지 않고,
+      // 필드 선언에 바로 할당 연산자를 사용할 수 있다.
+      Queue<E> queue = (Queue<E>) Queue.this.clone();
 
       @Override
       public boolean hasNext() {
@@ -42,17 +37,12 @@ public class Queue<E> extends LinkedList<E> implements Cloneable {
       }
 
       @Override
-      public T next() {
+      public E next() {
         return queue.poll();
       }
+    };
 
-    }
-    // 로컬 클래스는 인스턴스 멤버가 아니다.
-    // 따라서 로컬 클래스의 생성자를 호출할 때 앞쪽에 this을 지정해서는 안된다.
-    return new QueueIterator<>(this);
   }
-
-
 
 }
 

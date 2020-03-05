@@ -67,14 +67,16 @@ public class Stack<E> implements Cloneable {
 
   public Iterator<E> iterator() {
     // this = 인스턴스 주소;
-    class StackIterator<T> implements Iterator<T> {
 
-      Stack<T> stack;
+    // annoymous class
+    // 인스턴스를 한 개만 생성한다면 로컬(중첩) 클래스를 익명 클래스로 정의하라
 
-      @SuppressWarnings("unchecked")
-      public StackIterator(Stack<T> stack) {
-        this.stack = (Stack<T>) Stack.this.clone();
-      }
+    return new Iterator<E>() {
+
+      // 단순히 값을 할당하는 경우에는 인스턴스 블록에 넣지 않고,
+      // 필드 선언에 바로 할당 연산자를 사용할 수 있다.
+      Stack<E> stack = Stack.this.clone();
+
 
       @Override
       public boolean hasNext() {
@@ -82,36 +84,24 @@ public class Stack<E> implements Cloneable {
       }
 
       @Override
-      public T next() {
+      public E next() {
         return stack.pop();
       }
-    }
-    return new StackIterator<E>(this);
+    };
   }
 
-
-  /*
-static void m1() {
-  // 스태틱 메서드는 다음과 같이 클래스 이름으로 바로 호출 할 수 있기 때문에 this 변수가 없다.
-  //  예) Stack.m1();
-
-  // 스태틱 메서드에서 로컬 클래스를 정의한다면,
-  // 그 로컬 클래스는 바깥 클래스의 인스턴스를 직접 접근할 수 없다.
-
-  class A {
-    A() {
-      Stack s;
-      //s = Stack.this;
-      // 이 로컬 클래스는 m1()에서 사용할 것이다.
-      // m1()은 바깥 클래스의 인스턴스 주소를 모른다.
-      // 그런데 로컬 클래스에서 위와 같이 바깥클래스의 인스턴스를 사용하려 한다면 문제가 될 것이다.
-      // 이런 상황을 방지하고자 자바는 컴파일 오류를 발생시킨다.
-    }
-
-  }
 }
-*/
 
-}
+
+/*
+ * static void m1() { // 스태틱 메서드는 다음과 같이 클래스 이름으로 바로 호출 할 수 있기 때문에 this 변수가 없다. // 예) Stack.m1();
+ *
+ * // 스태틱 메서드에서 로컬 클래스를 정의한다면, // 그 로컬 클래스는 바깥 클래스의 인스턴스를 직접 접근할 수 없다.
+ *
+ * class A { A() { Stack s; //s = Stack.this; // 이 로컬 클래스는 m1()에서 사용할 것이다. // m1()은 바깥 클래스의 인스턴스 주소를
+ * 모른다. // 그런데 로컬 클래스에서 위와 같이 바깥클래스의 인스턴스를 사용하려 한다면 문제가 될 것이다. // 이런 상황을 방지하고자 자바는 컴파일 오류를 발생시킨다. }
+ *
+ * } }
+ */
 
 
