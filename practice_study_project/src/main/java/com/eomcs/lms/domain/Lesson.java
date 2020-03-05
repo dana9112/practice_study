@@ -119,7 +119,6 @@ public class Lesson {
   public void setDayHours(int dayHours) {
     this.dayHours = dayHours;
   }
-
-
-
 }
+
+
