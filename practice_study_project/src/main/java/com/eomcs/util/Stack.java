@@ -67,35 +67,50 @@ public class Stack<E> implements Cloneable {
 
   public Iterator<E> iterator() {
     // this = 인스턴스 주소;
-    // inner class를 생성하려면 바깥 클래스의 인스턴스 주소를 앞쪽에 줘야 한다.
-    return this.new StackIterator<E>(this);
+    class StackIterator<T> implements Iterator<T> {
+
+      Stack<T> stack;
+
+      @SuppressWarnings("unchecked")
+      public StackIterator(Stack<T> stack) {
+        this.stack = (Stack<T>) Stack.this.clone();
+      }
+
+      @Override
+      public boolean hasNext() {
+        return !stack.empty();
+      }
+
+      @Override
+      public T next() {
+        return stack.pop();
+      }
+    }
+    return new StackIterator<E>(this);
   }
 
 
-  // non-static nested class = inner class
-  class StackIterator<T> implements Iterator<T> {
+  /*
+static void m1() {
+  // 스태틱 메서드는 다음과 같이 클래스 이름으로 바로 호출 할 수 있기 때문에 this 변수가 없다.
+  //  예) Stack.m1();
 
-    Stack<T> stack;
-    int cursor;
+  // 스태틱 메서드에서 로컬 클래스를 정의한다면,
+  // 그 로컬 클래스는 바깥 클래스의 인스턴스를 직접 접근할 수 없다.
 
-    @SuppressWarnings("unchecked")
-    public StackIterator(Stack<T> stack) {
-      this.stack = (Stack<T>) Stack.this.clone();
+  class A {
+    A() {
+      Stack s;
+      //s = Stack.this;
+      // 이 로컬 클래스는 m1()에서 사용할 것이다.
+      // m1()은 바깥 클래스의 인스턴스 주소를 모른다.
+      // 그런데 로컬 클래스에서 위와 같이 바깥클래스의 인스턴스를 사용하려 한다면 문제가 될 것이다.
+      // 이런 상황을 방지하고자 자바는 컴파일 오류를 발생시킨다.
     }
-
-    @Override
-    public boolean hasNext() {
-      return !stack.empty();
-    }
-
-    @Override
-    public T next() {
-      return stack.pop();
-    }
-
 
   }
-
+}
+*/
 
 }
 
