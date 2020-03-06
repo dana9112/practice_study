@@ -12,11 +12,13 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Scanner;
+import java.util.Set;
 import com.eomcs.lms.domain.Board;
 import com.eomcs.lms.domain.Lesson;
 import com.eomcs.lms.domain.Member;
@@ -47,17 +49,51 @@ public class App {
   static Deque<String> commandStack = new ArrayDeque<>();
   static Queue<String> commandQueue = new LinkedList<>();
 
-  static List<Board> boardList = new ArrayList<>();
-  static List<Lesson> lessonList = new ArrayList<>();
-  static List<Member> memberList = new ArrayList<>();
+  List<Board> boardList = new ArrayList<>();
+  List<Lesson> lessonList = new ArrayList<>();
+  List<Member> memberList = new ArrayList<>();
+
+  // 옵저버 목록을 관리할 객체준비
+  // - 같은 인스턴스를 중복해서 등록하지 않도록 한다.
+  // - Set은 등록 순서를 따지지 않는다.
+  Set<ApplicationContextListener> listeners = new HashSet<>();
+
+  // 옵저버를 등록하는 메서드이다.
+  public void addApplicationContextListner(ApplicationContextListener listener) {
+    listeners.add(listener);
+  }
+
+  // 옵저버를 제거하는 메서드이다.
+  public void removeApplicationContextListner(ApplicationContextListener listener) {
+    listeners.remove(listener);
+  }
+
+  // 애플리케이션이 시작되면, 등록된 리스너에게 알린다.
+  private void notifyApplicationInitialized() {
+    for (ApplicationContextListener listener : listeners) {
+      listener.contextInitialized();
+    }
+  }
+
+  // 애플리케이션이 종료되면, 등록된 리스너에게 알린다.
+  private void notifyApplicationDestroyed() {
+    for (ApplicationContextListener listener : listeners) {
+      listener.contextDestroyed();
+    }
+  }
 
 
-  public static void main(String[] args) {
+
+  public void service() {
+
+    notifyApplicationInitialized();
 
     // 파일에서 데이터 로딩
     loadLessonData();
     loadBoardData();
     loadMemberData();
+
+    notifyApplicationDestroyed();
 
     Prompt prompt = new Prompt(keyboard);
     HashMap<String, Command> commandMap = new HashMap<>();
@@ -124,6 +160,7 @@ public class App {
     keyboard.close();
 
     // 데이터를 파일에 저장
+
     saveLessonData();
     saveBoardData();
     saveMemberData();
@@ -148,7 +185,7 @@ public class App {
   }
 
   @SuppressWarnings("unchecked")
-  private static void loadLessonData() {
+  private void loadLessonData() {
     // 데이터가 보관된 파일 정보를 준비한다.
     File file = new File("./lesson.json");
 
@@ -163,7 +200,7 @@ public class App {
   }
 
   @SuppressWarnings("unchecked")
-  private static void loadBoardData() {
+  private void loadBoardData() {
     // 데이터가 보관된 파일 정보를 준비한다.
     File file = new File("./board.json");
 
@@ -179,7 +216,7 @@ public class App {
 
 
   @SuppressWarnings("unchecked")
-  private static void loadMemberData() {
+  private void loadMemberData() {
 
     // 데이터가 보관된 파일 경로를 준비한다.
     File file = new File("./member.json");
@@ -193,7 +230,7 @@ public class App {
     }
   }
 
-  private static void saveLessonData() {
+  private void saveLessonData() {
 
     File file = new File("./lesson.json");
 
@@ -209,7 +246,7 @@ public class App {
   }
 
 
-  private static void saveBoardData() {
+  private void saveBoardData() {
     File file = new File("./board.json");
 
     try (ObjectOutputStream out =
@@ -224,7 +261,7 @@ public class App {
   }
 
 
-  private static void saveMemberData() {
+  private void saveMemberData() {
     File file = new File("./member.json");
 
     try (ObjectOutputStream out =
