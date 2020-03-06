@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.Date;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -166,26 +165,8 @@ public class App {
 
       while (true) {
         try {
-          // 파일에서 한 줄을 읽는다.
-          String Line = dataScan.nextLine();
 
-          // 한 줄을 콤마(,)로 나눈다.
-          String[] data = Line.split(",");
-
-          // 한 줄에 들어 있던 데이터를 추출하여 Lesson 객체에 담는다.
-          // => 데이터 순서는 다음과 같다.
-          // 번호, 강의명, 설명, 시작일, 종료일, 총 강의시간, 일 강의시간
-          Lesson lesson = new Lesson();
-          lesson.setNo(Integer.parseInt(data[0]));
-          lesson.setTitle(data[1]);
-          lesson.setDescription(data[2]);
-          lesson.setStartDate(Date.valueOf(data[3]));
-          lesson.setEndDate(Date.valueOf(data[4]));
-          lesson.setTotalHours(Integer.parseInt(data[5]));
-          lesson.setDayHours(Integer.parseInt(data[6]));
-
-          // lesson 객체를 Command가 사용하는 목록에 저장한다.
-          lessonList.add(lesson);
+          lessonList.add(Lesson.valueOf(dataScan.nextLine()));
           count++;
 
         } catch (Exception e) {
@@ -232,17 +213,7 @@ public class App {
       while (true) {
 
         try {
-          String Line = dataScan.nextLine();
-          String[] data = Line.split(",");
-
-          Board board = new Board();
-
-          board.setNo(Integer.parseInt(data[0]));
-          board.setTitle(data[1]);
-          board.setDate(Date.valueOf(data[2]));
-          board.setViewCount(Integer.parseInt(data[3]));
-
-          boardList.add(board);
+          boardList.add(Board.valueOf(dataScan.nextLine()));
           count++;
 
         } catch (Exception e) {
@@ -283,20 +254,7 @@ public class App {
 
       while (true) {
         try {
-          String Line = dataScan.nextLine();
-          String[] data = Line.split(",");
-
-          Member member = new Member();
-
-          member.setNo(Integer.parseInt(data[0]));
-          member.setName(data[1]);
-          member.setEmail(data[2]);
-          member.setPassword(data[3]);
-          member.setPhoto(data[4]);
-          member.setTel(data[5]);
-          member.setRegisteredDate(Date.valueOf(data[6]));
-
-          memberList.add(member);
+          memberList.add(Member.ValuOf(dataScan.nextLine()));
           count++;
         } catch (Exception e) {
           break;
@@ -330,11 +288,7 @@ public class App {
       int count = 0;
 
       for (Lesson lesson : lessonList) {
-        String line = String.format("%d,%s,%s,%s,%s,%d,%d\n", lesson.getNo(), lesson.getTitle(),
-            lesson.getDescription(), lesson.getStartDate(), lesson.getEndDate(),
-            lesson.getTotalHours(), lesson.getDayHours());
-
-        out.write(line);
+        out.write(lesson.toCsvString() + "\n");
         count++;
       }
       System.out.printf("총 %d의 수업 데이터를 저장했습니다.\n", count);
@@ -361,10 +315,7 @@ public class App {
       int count = 0;
 
       for (Board board : boardList) {
-        String line = String.format("%d,%s,%s,%d\n", board.getNo(), board.getTitle(),
-            board.getDate(), board.getViewCount());
-
-        out.write(line);
+        out.write(board.toCsvString() + "\n");
         count++;
       }
       System.out.printf("총 %d의 게시물 데이터를 저장했습니다.\n", count);
@@ -391,11 +342,7 @@ public class App {
       int count = 0;
 
       for (Member member : memberList) {
-        String line = String.format("%d,%s,%s,%s,%s,%s,%s\n", //
-            member.getNo(), member.getName(), member.getEmail(), member.getPassword(),
-            member.getPhoto(), member.getTel(), member.getRegisteredDate());
-
-        out.write(line);
+        out.write(member.toCsvString() + "\n");
         count++;
       }
       System.out.printf("총 %d의 회원정보 데이터를 저장했습니다.\n", count);
