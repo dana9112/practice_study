@@ -1,4 +1,4 @@
-package com.eomcs.lms;
+package com.eomcs.lms.context;
 
 // 애플리케이션의 상태가 변경되었을 때
 // 호출할 메서드 규칙을 정의한다.
