@@ -1,21 +1,22 @@
-# 28_4 - 파일 입출력시에 버퍼 기능 추가하기
+# 29 - 바이너리 형식으로 입출력하는 방법
 
-#학습 목표
-
-- 데코레이터 디자인 패턴을 이해한다.
-- 파일 입출력 클래스에 다른 클래스를 붙여 기능을 확장할 수 있다.
-- 버퍼 기능을 수행하는 입출력 클래스의 동작 원리를 이해한다.
-
-## 실습 소스
-- src/main/java/com/eomcs/lms/App.java 변경
+# 학습목표
+- 바이너리 입출력 스트림 클래스를 사용하여 객체의 필드 값을 바이너리 형식으로 읽고 쓸 수 있다.
+- DataInputStream/DataOutputStream을 사용할 수 있다.
   
-## 실습
+## 프로젝트 - 수업관리 시스템  
 
-### 훈련 1: 입출력에 버퍼 기능을 추가하라
+## 실습 소스 및 결과
+
+- src/main/java/com/eomcs/lms/App.java 변경
+
+## 훈련 1: CSV 형식으로된 텍스트 데이터 대신에 바이너리 데이터를 읽고 출력하라.  
+
 - App.java
-    - saveBoardData()를 변경한다.
-    - loadBoardData()를 변경한다.
-    - saveMemberData()를 변경한다.
-    - loadMemberData()를 변경한다.
-    - saveLessonData()를 변경한다.
-    - loadLessonData()를 변경한다.
+    - 파일에서 데이터를 읽을 때 DataInputStream을 사용한다.
+    - 파일에서 데이터를 쓸 때 DataOutputStream을 사용한다.
+
+## 실행 결과
+
+`App`의 실행 결과는 이전 버전과 같다.
+
