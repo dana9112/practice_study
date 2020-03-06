@@ -47,12 +47,12 @@ public class App {
 
   static Scanner keyboard = new Scanner(System.in);
 
-  static Deque<String> commandStack = new ArrayDeque<>();
-  static Queue<String> commandQueue = new LinkedList<>();
+  Deque<String> commandStack = new ArrayDeque<>();
+  Queue<String> commandQueue = new LinkedList<>();
 
-  List<Board> boardList = new ArrayList<>();
   List<Lesson> lessonList = new ArrayList<>();
   List<Member> memberList = new ArrayList<>();
+  List<Board> boardList = new ArrayList<>();
 
   // 옵저버 목록을 관리할 객체준비
   // - 같은 인스턴스를 중복해서 등록하지 않도록 한다.
@@ -60,17 +60,17 @@ public class App {
   Set<ApplicationContextListener> listeners = new HashSet<>();
 
   // 옵저버를 등록하는 메서드이다.
-  public void addApplicationContextListner(ApplicationContextListener listener) {
+  public void addApplicationContextListener(ApplicationContextListener listener) {
     listeners.add(listener);
   }
 
   // 옵저버를 제거하는 메서드이다.
-  public void removeApplicationContextListner(ApplicationContextListener listener) {
+  public void removeApplicationContextListener(ApplicationContextListener listener) {
     listeners.remove(listener);
   }
 
   // 애플리케이션이 시작되면, 등록된 리스너에게 알린다.
-  private void notifyApplicationInitialized() {
+  private void notifyApplicationIntialized() {
     for (ApplicationContextListener listener : listeners) {
       listener.contextInitialized();
     }
@@ -87,12 +87,12 @@ public class App {
 
   public void service() {
 
-    notifyApplicationInitialized();
+    notifyApplicationIntialized();
 
     // 파일에서 데이터 로딩
     loadLessonData();
-    loadBoardData();
     loadMemberData();
+    loadBoardData();
 
     notifyApplicationDestroyed();
 
@@ -151,6 +151,7 @@ public class App {
         try {
           commandHandler.execute();
         } catch (Exception e) {
+          e.printStackTrace();
           System.out.printf("명령어 실행 중 오류 발생: %s\n", e.getMessage());
         }
       } else {
@@ -161,15 +162,14 @@ public class App {
     keyboard.close();
 
     // 데이터를 파일에 저장
-
     saveLessonData();
-    saveBoardData();
     saveMemberData();
+    saveBoardData();
+
+  } // service()
 
 
-  }
-
-  private static void printCommandHistory(Iterator<String> iterator) {
+  private void printCommandHistory(Iterator<String> iterator) {
     int count = 0;
     while (iterator.hasNext()) {
       System.out.println(iterator.next());
@@ -187,93 +187,96 @@ public class App {
 
   @SuppressWarnings("unchecked")
   private void loadLessonData() {
-    // 데이터가 보관된 파일 정보를 준비한다.
-    File file = new File("./lesson.json");
+    // 데이터가 보관된 파일을 정보를 준비한다.
+    File file = new File("./lesson.ser2");
 
-    try (ObjectInputStream in = //
+    try (ObjectInputStream in =
         new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))) {
       lessonList = (List<Lesson>) in.readObject();
-      System.out.printf("총 %d개의 수업 데이터를 로딩했습니다.\n", lessonList.size());
-    } catch (Exception e) {
-      System.out.println("파일 읽기 중 오류 발생! -" + e.getMessage());
-    }
-
-  }
-
-  @SuppressWarnings("unchecked")
-  private void loadBoardData() {
-    // 데이터가 보관된 파일 정보를 준비한다.
-    File file = new File("./board.json");
-
-    try (ObjectInputStream in =
-        new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))) {
-      boardList = (List<Board>) in.readObject();
-      System.out.printf("총 %d개의 게시글 데이터를 로딩했습니다.\n", boardList.size());
+      System.out.printf("총 %d 개의 수업 데이터를 로딩했습니다.\n", lessonList.size());
 
     } catch (Exception e) {
-      System.out.println("파일 읽기 중 오류 발생 -" + e.getMessage());
-    }
-  }
-
-
-  @SuppressWarnings("unchecked")
-  private void loadMemberData() {
-
-    // 데이터가 보관된 파일 경로를 준비한다.
-    File file = new File("./member.json");
-
-    try (ObjectInputStream in =
-        new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))) {
-      memberList = (List<Member>) in.readObject();
-      System.out.printf("총 %d개의 회원정보 데이터를 로딩했습니다. \n", memberList.size());
-    } catch (Exception e) {
-      System.out.println("파일 읽기 중 오류 발생! -" + e.getMessage());
+      System.out.println("파일 읽기 중 오류 발생! - " + e.getMessage());
     }
   }
 
   private void saveLessonData() {
-
-    File file = new File("./lesson.json");
+    // 데이터가 보관된 파일을 정보를 준비한다.
+    File file = new File("./lesson.ser2");
 
     try (ObjectOutputStream out =
         new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
-
       out.writeObject(lessonList);
-      System.out.printf("총 %d개의 수업 데이터를 저장했습니다.\n", lessonList.size());
+      System.out.printf("총 %d 개의 수업 데이터를 저장했습니다.\n", lessonList.size());
 
     } catch (IOException e) {
-      System.out.println("파일 쓰기 중 오류 발생 \n" + e.getMessage());
+      System.out.println("파일 쓰기 중 오류 발생! - " + e.getMessage());
     }
   }
 
+  @SuppressWarnings("unchecked")
+  private void loadMemberData() {
+    File file = new File("./member.ser2");
 
-  private void saveBoardData() {
-    File file = new File("./board.json");
+    try (ObjectInputStream in =
+        new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))) {
 
-    try (ObjectOutputStream out =
-        new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
+      memberList = (List<Member>) in.readObject();
 
-      out.writeObject(boardList);
-      System.out.printf("총 %d개의 게시물 데이터를 저장했습니다.\n", boardList.size());
+      System.out.printf("총 %d 개의 회원 데이터를 로딩했습니다.\n", memberList.size());
 
-    } catch (IOException e) {
-      System.out.println("파일 쓰기 중 오류 발생\n" + e.getMessage());
+    } catch (Exception e) {
+      System.out.println("파일 읽기 중 오류 발생! - " + e.getMessage());
     }
   }
-
 
   private void saveMemberData() {
-    File file = new File("./member.json");
+    File file = new File("./member.ser2");
 
     try (ObjectOutputStream out =
         new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
       out.writeObject(memberList);
-      System.out.printf("총 %d개의 회원정보 데이터를 저장했습니다.\n", memberList.size());
+
+      System.out.printf("총 %d 개의 회원 데이터를 저장했습니다.\n", memberList.size());
 
     } catch (IOException e) {
-      System.out.println("파일 쓰기 중 오류 발생\n" + e.getMessage());
+      System.out.println("파일 쓰기 중 오류 발생! - " + e.getMessage());
     }
   }
+
+  @SuppressWarnings("unchecked")
+  private void loadBoardData() {
+    File file = new File("./board.ser2");
+
+    try (ObjectInputStream in =
+        new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))) {
+      boardList = (List<Board>) in.readObject();
+      System.out.printf("총 %d 개의 게시물 데이터를 로딩했습니다.\n", boardList.size());
+
+    } catch (Exception e) {
+      System.out.println("파일 읽기 중 오류 발생! - " + e.getMessage());
+    }
+  }
+
+  private void saveBoardData() {
+    File file = new File("./board.ser2");
+
+    try (ObjectOutputStream out =
+        new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
+      out.writeObject(boardList);
+      System.out.printf("총 %d 개의 게시물 데이터를 저장했습니다.\n", boardList.size());
+    } catch (IOException e) {
+      System.out.println("파일 쓰기 중 오류 발생! - " + e.getMessage());
+
+    }
+  }
+
+  public static void main(String[] args) {
+    App app = new App();
+    app.service();
+
+  }
+
 }
 
 
