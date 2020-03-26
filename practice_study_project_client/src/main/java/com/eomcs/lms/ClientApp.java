@@ -1,32 +1,14 @@
 // LMS 클라이언트
 package com.eomcs.lms;
 
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.PrintStream;
 import java.net.Socket;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Scanner;
-import com.eomcs.lms.handler.BoardAddCommand;
-import com.eomcs.lms.handler.BoardDeleteCommand;
-import com.eomcs.lms.handler.BoardDetailCommand;
-import com.eomcs.lms.handler.BoardListCommand;
-import com.eomcs.lms.handler.BoardUpdateCommand;
-import com.eomcs.lms.handler.Command;
-import com.eomcs.lms.handler.LessonAddCommand;
-import com.eomcs.lms.handler.LessonDeleteCommand;
-import com.eomcs.lms.handler.LessonDetailCommand;
-import com.eomcs.lms.handler.LessonListCommand;
-import com.eomcs.lms.handler.LessonUpdateCommand;
-import com.eomcs.lms.handler.MemberAddCommand;
-import com.eomcs.lms.handler.MemberDeleteCommand;
-import com.eomcs.lms.handler.MemberDetailCommand;
-import com.eomcs.lms.handler.MemberListCommand;
-import com.eomcs.lms.handler.MemberUpdateCommand;
 import com.eomcs.util.Prompt;
 
 public class ClientApp {
@@ -34,108 +16,118 @@ public class ClientApp {
   Scanner keyboard = new Scanner(System.in);
   Prompt prompt = new Prompt(keyboard);
 
+  Deque<String> commandStack;
+  Queue<String> commandQueue;
+
+  public ClientApp() throws Exception {
+    commandStack = new ArrayDeque<>();
+    commandQueue = new LinkedList<>();
+  }
+
   public void service() {
 
-    String serverAddr = null;
-    int port = 0;
+    while (true) {
+      String command;
+      command = prompt.inputString("\n명령> ");
 
-    try {
-      serverAddr = prompt.inputString("서버? ");
-      port = prompt.inputInt("포트? ");
+      if (command.length() == 0)
+        continue;
 
-    } catch (Exception e) {
-      System.out.println("서버 주소 또는 포트 번호가 유효하지 않습니다!");
-      keyboard.close();
-      return;
+      if (command.equals("history")) {
+        printCommandHistory(commandStack.iterator());
+        continue;
+      } else if (command.equals("history2")) {
+        printCommandHistory(commandQueue.iterator());
+        continue;
+      } else if (command.equals("quit")) {
+        break;
+      }
+
+      commandStack.push(command);
+      commandQueue.offer(command);
+
+      processCommand(command);
+
+      // 사용자가 서버에 종료를 요청했다면,
+      if (command.endsWith("/server/stop")) {
+        // 서버는 다음 클라이언트 요청이 들어 올 때 처리할 것이다.
+        // 이를 즉시 처리하도록 하기 위해,
+        // 임의 요청을 한 번 더 보내자.
+        processCommand(command);
+      }
     }
-
-    try (Socket socket = new Socket(serverAddr, port);
-        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-        ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
-
-      System.out.println("서버와 연결을 되었음!");
-
-      processCommand(out, in);
-
-      System.out.println("서버와 연결을 끊었음!");
-
-    } catch (Exception e) {
-      System.out.println("예외 발생:");
-      e.printStackTrace();
-    }
-
     keyboard.close();
   }
 
-  private void processCommand(ObjectOutputStream out, ObjectInputStream in) {
+  private void processCommand(String command) {
+    // 명령어 형식을 변경!
+    // [기존 방식]
+    // => 예) /board/list
+    // [새 방식]
+    // => 예) bitcamp://서버주소:포트번호/board/list
+    //
+    String host = null;
+    int port = 9999;
+    String servletPath = null;
 
-    Deque<String> commandStack = new ArrayDeque<>();
-    Queue<String> commandQueue = new LinkedList<>();
-
-    HashMap<String, Command> commandMap = new HashMap<>();
-    commandMap.put("/board/list", new BoardListCommand(out, in));
-    commandMap.put("/board/add", new BoardAddCommand(out, in, prompt));
-    commandMap.put("/board/detail", new BoardDetailCommand(out, in, prompt));
-    commandMap.put("/board/update", new BoardUpdateCommand(out, in, prompt));
-    commandMap.put("/board/delete", new BoardDeleteCommand(out, in, prompt));
-
-    commandMap.put("/member/list", new MemberListCommand(out, in));
-    commandMap.put("/member/add", new MemberAddCommand(out, in, prompt));
-    commandMap.put("/member/detail", new MemberDetailCommand(out, in, prompt));
-    commandMap.put("/member/update", new MemberUpdateCommand(out, in, prompt));
-    commandMap.put("/member/delete", new MemberDeleteCommand(out, in, prompt));
-
-    commandMap.put("/lesson/list", new LessonListCommand(out, in));
-    commandMap.put("/lesson/add", new LessonAddCommand(out, in, prompt));
-    commandMap.put("/lesson/detail", new LessonDetailCommand(out, in, prompt));
-    commandMap.put("/lesson/update", new LessonUpdateCommand(out, in, prompt));
-    commandMap.put("/lesson/delete", new LessonDeleteCommand(out, in, prompt));
-
+    // 명령어를 분석하여 서버주소와 포트번호, 실행시킬 작업명을 분리한다.
     try {
-      while (true) {
-        String command;
-        command = prompt.inputString("\n명령> ");
-
-        if (command.length() == 0)
-          continue;
-
-        if (command.equals("quit") || command.equals("/server/stop")) {
-          out.writeUTF(command);
-          out.flush();
-          System.out.println("서버: " + in.readUTF());
-          System.out.println("안녕!");
-          break;
-        } else if (command.equals("history")) {
-          printCommandHistory(commandStack.iterator());
-          continue;
-        } else if (command.equals("history2")) {
-          printCommandHistory(commandQueue.iterator());
-          continue;
-        }
-
-        commandStack.push(command);
-
-        commandQueue.offer(command);
-
-        Command commandHandler = commandMap.get(command);
-
-        if (commandHandler != null) {
-          try {
-            commandHandler.execute();
-          } catch (Exception e) {
-            e.printStackTrace();
-            System.out.printf("명령어 실행 중 오류 발생: %s\n", e.getMessage());
-          }
-        } else {
-          System.out.println("실행할 수 없는 명령입니다.");
-        }
+      if (!command.startsWith("bitcamp://")) {
+        throw new Exception("명령어 형식이 옳지 않습니다!");
       }
+
+      // System.out.println(command);
+      // command 예) bitcamp://localhost:9999/board/list
+
+      String url = command.substring(10);
+      // => localhost:9999/board/list
+
+      // System.out.println(url);
+
+      int index = url.indexOf('/'); // 14
+      String[] str = //
+          url.substring(0, index) // localhost:9999
+              .split(":"); // {"localhost", "9999"}
+
+      host = str[0];
+      if (str.length == 2) {
+        port = Integer.parseInt(str[1]);
+      }
+      // System.out.printf("=> %s:%d\n", host, port); // => localhost:9999
+
+      servletPath = url.substring(index);
+      // System.out.printf("=> %s\n", servletPath); // => /board/list
+
     } catch (Exception e) {
-      System.out.println("프로그램 실행 중 오류 발생!");
+      System.out.println(e.getMessage());
+      return;
     }
 
-    keyboard.close();
+    // 서버에 연결한다.
+    try (Socket socket = new Socket(host, port);
+        PrintStream out = new PrintStream(socket.getOutputStream());
+        Scanner in = new Scanner(socket.getInputStream())) {
 
+      // 서버에 명령을 보낸다.
+      out.println(servletPath);
+      out.flush();
+
+      // 서버의 응답을 읽어서 출력한다.
+      while (true) {
+        String response = in.nextLine();
+        if (response.equals("!end!")) {
+          break;
+        } else if (response.equals("!{}!")) {
+          String input = prompt.inputString("");
+          out.println(input);
+        } else {
+          System.out.println(response);
+        }
+      }
+
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+    }
   }
 
   private void printCommandHistory(Iterator<String> iterator) {
