@@ -19,6 +19,28 @@ insert into to_do_list(to_do_list_no, member_no, memo, create_date)
   values(9, 6, '상체운동하기', '2020-03-03');
 insert into to_do_list(to_do_list_no, member_no, memo, create_date)
   values(10, 7, '일주일에 3일이상 운동하기', '2020-03-04');
+  
+-- 운동 예제 데이터
+insert into workout(workout_no, name, unit)
+  values(1, '조깅', '분');
+insert into workout(workout_no, name, unit)
+  values(2, '수영', '분');
+insert into workout(workout_no, name, unit)
+  values(3, '등산', '분');
+insert into workout(workout_no, name, unit)
+  values(4, '서핑', '분');
+insert into workout(workout_no, name, unit)
+  values(5, '헬스', '분');
+insert into workout(workout_no, name, unit)
+  values(6, '걷기', '걸음수');
+insert into workout(workout_no, name, unit)
+  values(7, '요가', '분');
+insert into workout(workout_no, name, unit)
+  values(8, '필라테스', '분');
+insert into workout(workout_no, name, unit)
+  values(9, '테니스', '분');
+insert into workout(workout_no, name, unit)
+  values(10, '배드민턴', '분');
 
   
 -- 운동내역 예제 데이터
@@ -42,29 +64,6 @@ insert into workout_list(member_no, workout_no, workout_date, workout_amount, kc
   values(6, 4, '2020-04-03', '80', '800');
 insert into workout_list(member_no, workout_no, workout_date, workout_amount, kcal)
   values(7, 3, '2020-05-01', '40', '500');
-  
-  
--- 운동 예제 데이터
-insert into workout(workout_no, name, unit)
-  values(1, '조깅', '분');
-insert into workout(workout_no, name, unit)
-  values(2, '수영', '분');
-insert into workout(workout_no, name, unit)
-  values(3, '등산', '분');
-insert into workout(workout_no, name, unit)
-  values(4, '서핑', '분');
-insert into workout(workout_no, name, unit)
-  values(5, '헬스', '분');
-insert into workout(workout_no, name, unit)
-  values(6, '걷기', '걸음수');
-insert into workout(workout_no, name, unit)
-  values(7, '요가', '분');
-insert into workout(workout_no, name, unit)
-  values(8, '필라테스', '분');
-insert into workout(workout_no, name, unit)
-  values(9, '테니스', '분');
-insert into workout(workout_no, name, unit)
-  values(10, '배드민턴', '분');
   
   
 -- 캘린터 첨부파일
