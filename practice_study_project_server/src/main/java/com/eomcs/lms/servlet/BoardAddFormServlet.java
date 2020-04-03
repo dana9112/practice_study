@@ -1,6 +1,6 @@
 package com.eomcs.lms.servlet;
 
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 import com.eomcs.util.RequestMapping;
@@ -9,8 +9,7 @@ import com.eomcs.util.RequestMapping;
 public class BoardAddFormServlet {
 
   @RequestMapping("/board/addForm")
-  public void service(Map<String, String> params, PrintStream out) throws Exception {
-
+  public void service(Map<String, String> params, PrintWriter out) throws Exception {
     out.println("<!DOCTYPE html>");
     out.println("<html>");
     out.println("<head>");
@@ -26,6 +25,5 @@ public class BoardAddFormServlet {
     out.println("</form>");
     out.println("</body>");
     out.println("</html>");
-
   }
 }

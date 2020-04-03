@@ -21,8 +21,6 @@ public interface LessonDao {
   int delete(int no) throws Exception;
 
   List<Lesson> findByKeyword(Map<String, Object> params) throws Exception;
-  // 디폴트 값은 null값으로 처리되어서 search할때는 없애줘야함
-
 }
 
 
