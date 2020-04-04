@@ -2,54 +2,29 @@
 package com.eomcs.lms;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.SocketTimeoutException;
-import java.net.URLDecoder;
-import java.nio.charset.Charset;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.ConnectionClosedException;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.ExceptionListener;
-import org.apache.hc.core5.http.HttpConnection;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
-import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
-import org.apache.hc.core5.http.io.HttpRequestHandler;
-import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.CloseMode;
-import org.apache.hc.core5.util.TimeValue;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.context.ApplicationContext;
 import com.eomcs.lms.context.ApplicationContextListener;
-import com.eomcs.util.RequestHandler;
-import com.eomcs.util.RequestMappingHandlerMapping;
+import com.eomcs.lms.domain.Board;
+import com.eomcs.lms.domain.Lesson;
+import com.eomcs.lms.domain.Member;
 
-public class ServerApp //
-    implements ExceptionListener, HttpRequestHandler {
-
-  // log4j의 logger 준비
-  static Logger logger = LogManager.getLogger(ServerApp.class);
+public class ServerApp {
 
   // 옵저버 관련 코드
   Set<ApplicationContextListener> listeners = new HashSet<>();
   Map<String, Object> context = new HashMap<>();
 
-  // IoC 컨테이너 준비
-  ApplicationContext iocContainer;
-
-  // request handler 맵퍼 준비
-  RequestMappingHandlerMapping handlerMapper;
+  List<Board> boards;
+  List<Member> members;
+  List<Lesson> lessons;
 
   public void addApplicationContextListener(ApplicationContextListener listener) {
     listeners.add(listener);
@@ -72,188 +47,484 @@ public class ServerApp //
   }
   // 옵저버 관련코드 끝!
 
-  public void service() throws Exception {
+  @SuppressWarnings("unchecked")
+  public void service() {
+
     notifyApplicationInitialized();
 
-    // ApplicationContext (IoC 컨테이너)를 꺼낸다.
-    iocContainer = (ApplicationContext) context.get("iocContainer");
+    // DataLoaderListener가 준비한 데이터를 꺼내 인스턴스 필드에 저장한다.
+    boards = (List<Board>) context.get("boardList");
+    members = (List<Member>) context.get("memberList");
+    lessons = (List<Lesson>) context.get("lessonList");
 
-    // request handler mapper를 꺼낸다.
-    handlerMapper = //
-        (RequestMappingHandlerMapping) context.get("handlerMapper");
+    try (
+        // 서버쪽 연결 준비
+        // => 클라이언트의 연결을 9999번 포트에서 기다린다.
+        ServerSocket serverSocket = new ServerSocket(9999)) {
 
-    // 소켓 동작 설정
-    SocketConfig socketConfig = SocketConfig.custom() //
-        .setSoTimeout(15, TimeUnit.SECONDS)//
-        .setTcpNoDelay(true) //
-        .build();
+      System.out.println("클라이언트 연결 대기중...");
 
-    // HTTP 서버 준비
-    HttpServer server = ServerBootstrap.bootstrap()//
-        .setListenerPort(9999) // 웹서버 포트 번호 설정
-        .setSocketConfig(socketConfig) // 기본 소켓 동작 설정
-        .setSslContext(null) // SSL 설정
-        .setExceptionListener(this) // 예외 처리자 설정
-        .register("*", this) // 요청 처리자 설정
-        .create(); // 웹서버 객체 생성
+      while (true) {
+        Socket socket = serverSocket.accept();
+        System.out.println("클라이언트와 연결되었음!");
 
-    // 웹서버를 시작시킨다.
-    server.start();
+        if (processRequest(socket) == 9) {
+          break;
+        }
 
-    // 웹서버를 종료시키는 스레드를 등록한다.
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        notifyApplicationDestroyed();
-        logger.info("서버 종료!");
-        server.close(CloseMode.GRACEFUL);
+        System.out.println("--------------------------------------");
       }
-    });
 
-    logger.info("비트서버 시작(9999)!");
+    } catch (Exception e) {
+      System.out.println("서버 준비 중 오류 발생!");
+    }
 
-    server.awaitTermination(TimeValue.MAX_VALUE);
+    notifyApplicationDestroyed();
+
   } // service()
 
-  private void notFound(PrintWriter out) throws IOException {
-    out.println("<!DOCTYPE html>");
-    out.println("<html>");
-    out.println("<head>");
-    out.println("<meta charset='UTF-8'>");
-    out.println("<title>실행 오류!</title>");
-    out.println("</head>");
-    out.println("<body>");
-    out.println("<h1>실행 오류!</h1>");
-    out.println("<p>요청한 명령을 처리할 수 없습니다.</p>");
-    out.println("</body>");
-    out.println("</html>");
+
+  int processRequest(Socket clientSocket) {
+    try (Socket socket = clientSocket;
+        ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+        ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
+
+      System.out.println("통신을 위한 입출력 스트림을 준비하였음!");
+
+      while (true) {
+        String request = in.readUTF();
+        System.out.println("클라이언트가 보낸 메시지를 수신하였음!");
+
+
+        switch (request) {
+          case "quit":
+            quit(out);
+            return 0;
+          case "/server/stop":
+            quit(out);
+            return 9;
+          case "/board/list":
+            listBoard(out);
+            break;
+          case "/board/add":
+            addBoard(in, out);
+            break;
+          case "/board/detail":
+            detailBoard(in, out);
+            break;
+          case "/board/update":
+            updateBoard(in, out);
+            break;
+          case "/board/delete":
+            deleteBoard(in, out);
+            break;
+          case "/member/list":
+            listMember(out);
+            break;
+          case "/member/add":
+            addMember(in, out);
+            break;
+          case "/member/detail":
+            detailMember(in, out);
+            break;
+          case "/member/update":
+            updateMember(in, out);
+            break;
+          case "/member/delete":
+            deleteMember(in, out);
+            break;
+          case "/lesson/list":
+            listLesson(out);
+            break;
+          case "/lesson/add":
+            addLesson(in, out);
+            break;
+          case "/lesson/detail":
+            detailLesson(in, out);
+            break;
+          case "/lesson/update":
+            updateLesson(in, out);
+            break;
+          case "/lesson/delete":
+            deleteLesson(in, out);
+            break;
+
+          default:
+            notFound(out);
+        }
+
+        out.flush();
+        System.out.println("클라이언트로 메시지를 전송하였음!");
+      }
+    } catch (
+
+    Exception e) {
+      System.out.println("예외 발생:");
+      e.printStackTrace();
+      return -1;
+    }
   }
 
-  private void error(PrintWriter out, Exception ex) throws IOException {
-    out.println("<!DOCTYPE html>");
-    out.println("<html>");
-    out.println("<head>");
-    out.println("<meta charset='UTF-8'>");
-    out.println("<title>실행 오류!</title>");
-    out.println("</head>");
-    out.println("<body>");
-    out.println("<h1>실행 오류!</h1>");
-    out.printf("<p>%s</p>\n", ex.getMessage());
-    out.println("</body>");
-    out.println("</html>");
+
+  private void quit(ObjectOutputStream out) throws IOException {
+    out.writeUTF("OK");
+    out.flush();
   }
 
 
-  private String getServletPath(String requestUri) {
-    // requestUri => /member/add?email=aaa@test.com&name=aaa&password=1111
-    return requestUri.split("\\?")[0]; // 예) /member/add
+  private void notFound(ObjectOutputStream out) throws IOException {
+    out.writeUTF("FAIL");
+    out.writeUTF("요청한 명령을 처리할 수 없습니다.");
   }
 
-  private Map<String, String> getParameters(String requestUri) throws Exception {
-    // 데이터(Query String)는 따로 저장
-    // => /member/list?email=aaa@test.com&name=aaa&password=1111
-    Map<String, String> params = new HashMap<>();
-    String[] items = requestUri.split("\\?");
-    if (items.length > 1) {
-      logger.debug(String.format("query string => %s", items[1]));
-      String[] entries = items[1].split("&");
-      for (String entry : entries) {
-        logger.debug(String.format("parameter => %s", entry));
-        String[] kv = entry.split("=");
 
-        if (kv.length > 1) {
-          // 웹브라우저가 URL 인코딩하여 보낸 데이터를
-          // 디코딩하여 String 객체로 만든다.
-          String value = URLDecoder.decode(kv[1], "UTF-8");
+  private void listBoard(ObjectOutputStream out) throws IOException {
+    out.writeUTF("OK");
+    out.reset();
+    out.writeObject(boards);
+  }
 
-          params.put(kv[0], value);
-        } else {
-          params.put(kv[0], "");
+  private void addBoard(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      Board board = (Board) in.readObject();
+
+      int i = 0;
+      for (; i < boards.size(); i++) {
+        if (boards.get(i).getNo() == board.getNo()) {
+          break;
         }
       }
-    }
-    return params;
-  }
 
-  // ExceptionListener 인터페이스 구현
-  @Override
-  public void onError(final Exception ex) {
-    ex.printStackTrace();
-  }
+      if (i == boards.size()) { // 같은 번호의 게시물이 없다면,
+        boards.add(board); // 새 게시물을 등록한다.
+        out.writeUTF("OK");
 
-  @Override
-  public void onError(final HttpConnection conn, final Exception ex) {
-    if (ex instanceof SocketTimeoutException) {
-      System.err.println("Connection timed out");
-    } else if (ex instanceof ConnectionClosedException) {
-      System.err.println(ex.getMessage());
-    } else {
-      ex.printStackTrace();
-    }
-  }
-  // ExceptionListener 인터페이스 구현 - 끝
-
-  // HttpRequestHandler 인터페이스 구현
-  @Override
-  public void handle( // 서버창에서 어떻게 돌아가는지 보는 것
-      final ClassicHttpRequest request, // 클라이언트 요청처리 도구
-      final ClassicHttpResponse response, // 클라이언트 응답처리 도구
-      final HttpContext context // HTTP 설정 도구
-  ) throws HttpException, IOException {
-
-    logger.info("--------------------------------------");
-    logger.info("클라이언트의 요청이 들어옴!");
-
-    // 클라이언트로 콘텐트 출력할 때 사용할 도구 준비
-    // => 이 출력 스트림을 사용하여 출력하는 모든 데이터는
-    // .. 메모리에 임시 보관된다. (Stringwiter에 한번에 모여서 한방에 출력하기 위해서)
-    StringWriter outBuffer = new StringWriter();
-    PrintWriter out = new PrintWriter(outBuffer);
-
-    String method = request.getMethod(); // GET|POST|HEAD (주석추가)
-    String requestUri = request.getPath(); // /phtobaord/list (주석추가)
-    logger.info("{} {}", method, requestUri);
-
-    try {
-      String servletPath = getServletPath(requestUri);
-      logger.debug(String.format("servlet path => %s", servletPath));
-
-      Map<String, String> params = getParameters(requestUri);
-      RequestHandler requestHandler = handlerMapper.getHandler(servletPath);
-
-      if (requestHandler != null) {
-        // Request Handler의 메서드 호출
-        requestHandler.getMethod().invoke( //
-            requestHandler.getBean(), //
-            params, out);
       } else {
-        notFound(new PrintWriter(out));
-        logger.info("해당 명령을 지원하지 않습니다.");
+        out.writeUTF("FAIL");
+        out.writeUTF("같은 번호의 게시물이 있습니다.");
+      }
+
+
+    } catch (Exception e) {
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
+    }
+  }
+
+
+  private void detailBoard(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      int no = in.readInt();
+
+      Board board = null;
+      for (Board b : boards) {
+        if (b.getNo() == no) {
+          board = b;
+          break;
+        }
+      }
+
+      if (board != null) {
+        out.writeUTF("OK");
+        out.writeObject(board);
+
+      } else {
+        out.writeUTF("FAIL");
+        out.writeUTF("해당 번호의 게시물이 없습니다.");
+      }
+
+    } catch (Exception e) {
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
+    }
+  }
+
+
+  private void updateBoard(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      Board board = (Board) in.readObject();
+
+      int index = -1;
+      for (int i = 0; i < boards.size(); i++) {
+        if (boards.get(i).getNo() == board.getNo()) {
+          index = i;
+          break;
+        }
+      }
+
+      if (index != -1) {
+        boards.set(index, board);
+        out.writeUTF("OK");
+      } else {
+        out.writeUTF("FAIL");
+        out.writeUTF("해당 번호의 게시물이 없습니다.");
+      }
+
+    } catch (Exception e) {
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
+    }
+  }
+
+  private void deleteBoard(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      int no = in.readInt();
+
+      int index = -1;
+      for (int i = 0; i < boards.size(); i++) {
+        if (boards.get(i).getNo() == no) {
+          index = i;
+          break;
+        }
+      }
+
+      if (index != -1) { // 삭제하려는 번호의 게시물을 찾았다면
+        boards.remove(index);
+        out.writeUTF("OK");
+
+      } else {
+        out.writeUTF("FAIL");
+        out.writeUTF("해당 번호의 게시물이 없습니다.");
       }
     } catch (Exception e) {
-      error(out, e);
-
-      logger.info("클라이언트 요청 처리 중 오류 발생");
-      logger.info(e.getMessage());
-      StringWriter strWriter = new StringWriter();
-      e.printStackTrace(new PrintWriter(strWriter));
-      logger.debug(strWriter.toString());
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
     }
-
-    // 작업한 결과를 클라이언트로 보낸다.
-    response.setCode(HttpStatus.SC_OK); // => HTTP/1.1 200 OK
-    response.setEntity(new StringEntity(//
-        outBuffer.toString(), //
-        ContentType.create("text/html", Charset.forName("UTF-8"))));
-
   }
-  // HttpRequestHandler 인터페이스 구현 - 끝
 
-  public static void main(String[] args) throws Exception {
-    logger.info("서버 수업 관리 시스템입니다.");
+
+  private void listMember(ObjectOutputStream out) throws IOException {
+    out.writeUTF("OK");
+    out.reset();
+    out.writeObject(members);
+  }
+
+  private void addMember(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      Member member = (Member) in.readObject();
+
+      int i = 0;
+      for (; i < members.size(); i++) {
+        if (members.get(i).getNo() == member.getNo()) {
+          break;
+        }
+      }
+
+      if (i == members.size()) {
+        members.add(member);
+        out.writeUTF("OK");
+
+      } else {
+        out.writeUTF("FAIL");
+        out.writeUTF("같은 번호의 회원이 있습니다.");
+      }
+
+
+    } catch (Exception e) {
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
+    }
+  }
+
+  private void detailMember(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      int no = in.readInt();
+
+      Member member = null;
+      for (Member m : members) {
+        if (m.getNo() == no) {
+          member = m;
+          break;
+        }
+      }
+
+      if (member != null) {
+        out.writeUTF("OK");
+        out.writeObject(member);
+
+      } else {
+        out.writeUTF("FAIL");
+        out.writeUTF("해당 번호의 회원이 없습니다.");
+      }
+
+    } catch (Exception e) {
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
+    }
+  }
+
+  private void updateMember(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      Member member = (Member) in.readObject();
+
+      int index = -1;
+      for (int i = 0; i < members.size(); i++) {
+        if (members.get(i).getNo() == member.getNo()) {
+          index = i;
+          break;
+        }
+      }
+
+      if (index != -1) {
+        members.set(index, member);
+        out.writeUTF("OK");
+      } else {
+        out.writeUTF("FAIL");
+        out.writeUTF("해당 번호의 회원이 없습니다.");
+      }
+
+    } catch (Exception e) {
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
+    }
+  }
+
+
+  private void deleteMember(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      int no = in.readInt();
+
+      int index = -1;
+      for (int i = 0; i < members.size(); i++) {
+        if (members.get(i).getNo() == no) {
+          index = i;
+          break;
+        }
+      }
+
+      if (index != -1) {
+        members.remove(index);
+        out.writeUTF("OK");
+
+      } else {
+        out.writeUTF("FAIL");
+        out.writeUTF("해당 번호의 회원이 없습니다.");
+      }
+    } catch (Exception e) {
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
+    }
+  }
+
+
+  private void listLesson(ObjectOutputStream out) throws IOException {
+    out.writeUTF("OK");
+    out.reset();
+    out.writeObject(lessons);
+  }
+
+  private void addLesson(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      Lesson lesson = (Lesson) in.readObject();
+
+      int i = 0;
+      for (; i < lessons.size(); i++) {
+        if (lessons.get(i).getNo() == lesson.getNo()) {
+          break;
+        }
+      }
+
+      if (i == lessons.size()) {
+        lessons.add(lesson);
+        out.writeUTF("OK");
+
+      } else {
+        out.writeUTF("FAIL");
+        out.writeUTF("같은 번호의 수업이 있습니다.");
+      }
+
+
+    } catch (Exception e) {
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
+    }
+  }
+
+  private void detailLesson(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      int no = in.readInt();
+
+      Lesson lesson = null;
+      for (Lesson l : lessons) {
+        if (l.getNo() == no) {
+          lesson = l;
+          break;
+        }
+      }
+
+      if (lesson != null) {
+        out.writeUTF("OK");
+        out.writeObject(lesson);
+
+      } else {
+        out.writeUTF("FAIL");
+        out.writeUTF("해당 번호의 수업이 없습니다.");
+      }
+
+    } catch (Exception e) {
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
+    }
+  }
+
+  private void updateLesson(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      Lesson lesson = (Lesson) in.readObject();
+
+      int index = -1;
+      for (int i = 0; i < lessons.size(); i++) {
+        if (lessons.get(i).getNo() == lesson.getNo()) {
+          index = i;
+          break;
+        }
+      }
+
+      if (index != -1) {
+        lessons.set(index, lesson);
+        out.writeUTF("OK");
+      } else {
+        out.writeUTF("FAIL");
+        out.writeUTF("해당 번호의 수업이 없습니다.");
+      }
+
+    } catch (Exception e) {
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
+    }
+  }
+
+  private void deleteLesson(ObjectInputStream in, ObjectOutputStream out) throws IOException {
+    try {
+      int no = in.readInt();
+
+      int index = -1;
+      for (int i = 0; i < lessons.size(); i++) {
+        if (lessons.get(i).getNo() == no) {
+          index = i;
+          break;
+        }
+      }
+
+      if (index != -1) {
+        lessons.remove(index);
+        out.writeUTF("OK");
+
+      } else {
+        out.writeUTF("FAIL");
+        out.writeUTF("해당 번호의 수업이 없습니다.");
+      }
+    } catch (Exception e) {
+      out.writeUTF("FAIL");
+      out.writeUTF(e.getMessage());
+    }
+  }
+
+
+  public static void main(String[] args) {
+    System.out.println("서버 수업 관리 시스템입니다.");
 
     ServerApp app = new ServerApp();
-    app.addApplicationContextListener(new ContextLoaderListener());
+    app.addApplicationContextListener(new DataLoaderListener());
     app.service();
   }
 }
