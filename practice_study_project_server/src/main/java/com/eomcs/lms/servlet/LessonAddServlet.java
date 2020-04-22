@@ -1,5 +1,6 @@
 package com.eomcs.lms.servlet;
 
+<<<<<<< HEAD
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Date;
@@ -53,6 +54,39 @@ public class LessonAddServlet extends GenericServlet {
       out.println("</html>");
     } catch (Exception e) {
       throw new ServletException(e);
+=======
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.List;
+import com.eomcs.lms.domain.Lesson;
+
+public class LessonAddServlet implements Servlet {
+
+  List<Lesson> lessons;
+
+  public LessonAddServlet(List<Lesson> lessons) {
+    this.lessons = lessons;
+  }
+
+  @Override
+  public void service(ObjectInputStream in, ObjectOutputStream out) throws Exception {
+    Lesson lesson = (Lesson) in.readObject();
+
+    int i = 0;
+    for (; i < lessons.size(); i++) {
+      if (lessons.get(i).getNo() == lesson.getNo()) {
+        break;
+      }
+    }
+
+    if (i == lessons.size()) {
+      lessons.add(lesson);
+      out.writeUTF("OK");
+
+    } else {
+      out.writeUTF("FAIL");
+      out.writeUTF("같은 번호의 수업이 있습니다.");
+>>>>>>> aaaf26f4768e15e5c797d24b77a637e2ae21fe1b
     }
   }
 }

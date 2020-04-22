@@ -1,5 +1,6 @@
 package com.eomcs.lms.servlet;
 
+<<<<<<< HEAD
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -80,4 +81,28 @@ public class LessonListServlet extends GenericServlet {
       throw new ServletException(e);
     }
   }
+=======
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.List;
+import com.eomcs.lms.domain.Lesson;
+
+public class LessonListServlet implements Servlet {
+
+  List<Lesson> lessons;
+
+  public LessonListServlet(List<Lesson> lessons) {
+    this.lessons = lessons;
+  }
+
+  @Override
+  public void service(ObjectInputStream in, ObjectOutputStream out) throws Exception {
+    out.writeUTF("OK");
+    out.reset();
+    out.writeObject(lessons);
+  }
+
+
+
+>>>>>>> aaaf26f4768e15e5c797d24b77a637e2ae21fe1b
 }

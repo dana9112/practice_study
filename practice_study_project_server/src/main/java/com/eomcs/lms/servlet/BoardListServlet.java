@@ -1,5 +1,6 @@
 package com.eomcs.lms.servlet;
 
+<<<<<<< HEAD
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -68,5 +69,29 @@ public class BoardListServlet extends GenericServlet {
     } catch (Exception e) {
       throw new ServletException(e);
     }
+=======
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.List;
+import com.eomcs.lms.domain.Board;
+
+public class BoardListServlet implements Servlet {
+
+  List<Board> boards;
+
+  public BoardListServlet(List<Board> boards) {
+    this.boards = boards;
   }
+
+  @Override
+  public void service(ObjectInputStream in, ObjectOutputStream out) throws Exception {
+    out.writeUTF("OK");
+    out.reset();
+    out.writeObject(boards);
+
+>>>>>>> aaaf26f4768e15e5c797d24b77a637e2ae21fe1b
+  }
+
+
+
 }

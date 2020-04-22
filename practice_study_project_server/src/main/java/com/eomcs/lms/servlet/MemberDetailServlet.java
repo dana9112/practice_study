@@ -1,5 +1,6 @@
 package com.eomcs.lms.servlet;
 
+<<<<<<< HEAD
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.GenericServlet;
@@ -65,6 +66,40 @@ public class MemberDetailServlet extends GenericServlet {
       out.println("</html>");
     } catch (Exception e) {
       throw new ServletException(e);
+=======
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.List;
+import com.eomcs.lms.domain.Member;
+
+public class MemberDetailServlet implements Servlet {
+
+  List<Member> members;
+
+  public MemberDetailServlet(List<Member> members) {
+    this.members = members;
+  }
+
+  @Override
+  public void service(ObjectInputStream in, ObjectOutputStream out) throws Exception {
+    int no = in.readInt();
+
+    Member member = null;
+    for (Member m : members) {
+      if (m.getNo() == no) {
+        member = m;
+        break;
+      }
+    }
+
+    if (member != null) {
+      out.writeUTF("OK");
+      out.writeObject(member);
+
+    } else {
+      out.writeUTF("FAIL");
+      out.writeUTF("해당 번호의 회원이 없습니다.");
+>>>>>>> aaaf26f4768e15e5c797d24b77a637e2ae21fe1b
     }
   }
 }

@@ -1,5 +1,6 @@
 package com.eomcs.lms.servlet;
 
+<<<<<<< HEAD
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.GenericServlet;
@@ -48,6 +49,40 @@ public class BoardAddServlet extends GenericServlet {
 
     } catch (Exception e) {
       throw new ServletException(e);
+=======
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.List;
+import com.eomcs.lms.domain.Board;
+
+public class BoardAddServlet implements Servlet {
+
+  List<Board> boards;
+
+  public BoardAddServlet(List<Board> boards) {
+    this.boards = boards;
+  }
+
+  @Override
+  public void service(ObjectInputStream in, ObjectOutputStream out) throws Exception {
+
+    Board board = (Board) in.readObject();
+
+    int i = 0;
+    for (; i < boards.size(); i++) {
+      if (boards.get(i).getNo() == board.getNo()) {
+        break;
+      }
+    }
+
+    if (i == boards.size()) { // 같은 번호의 게시물이 없다면,
+      boards.add(board); // 새 게시물을 등록한다.
+      out.writeUTF("OK");
+
+    } else {
+      out.writeUTF("FAIL");
+      out.writeUTF("같은 번호의 게시물이 있습니다.");
+>>>>>>> aaaf26f4768e15e5c797d24b77a637e2ae21fe1b
     }
   }
 }
