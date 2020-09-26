@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.eomcs.lms.dao.CoachingProgramsDao">
+
+  <resultMap type="CoachingProgrmas" id="CoachingProgramsMap">
+    <id column="program_no"   property="program_no"/>
+    <result column="coach_no"  property="coach_no"/>
+    <result column="name"    property="name"/>
+    <result column="introduce" property="introduce"/>
+    <result column="fee" property="fee"/>
+  </resultMap>
+  
+  <sql id="coachingProgram">
+    select 
+      program_no, 
+      coach_no,
+      name, 
+      introduce, 
+      fee
+    from 
+      coaching_programs
+  </sql>
+  
+  <select id="findAll" resultMap="CoachingProgramsMap">
+    <include refid="coachingProgram"/>
+    order by 
+      program_no desc
+  </select>
+  
+  <insert id="insert" parameterType="CoachingProgrmas">
+    insert into coaching_programs(name, int) 
+    values(#{title})
+  </insert>
+  
+  <select id="findByNo" resultMap="CoachingProgramsMap" parameterType="int">
+    <include refid="coachingProgram"/>
+    where 
+      board_id=#{no}
+  </select>
+  
+  <update id="update" parameterType="CoachingProgrmas">
+    update lms_board set
+      conts=#{title}
+    where board_id=#{no}
+  </update>
+  
+  <delete id="delete" parameterType="int">
+    delete from lms_board
+    where board_id=#{no}
+  </delete>
+</mapper>

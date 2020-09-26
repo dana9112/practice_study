@@ -1,6 +1,5 @@
 package com.eomcs.lms.servlet;
 
-<<<<<<< HEAD
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -11,11 +10,11 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebServlet;
 import org.springframework.context.ApplicationContext;
-import com.eomcs.lms.domain.Board;
-import com.eomcs.lms.service.BoardService;
+import com.eomcs.lms.domain.Member;
+import com.eomcs.lms.service.MemberService;
 
-@WebServlet("/board/list")
-public class BoardListServlet extends GenericServlet {
+@WebServlet("/member/search")
+public class MemberSearchServlet extends GenericServlet {
   private static final long serialVersionUID = 1L;
 
   @Override
@@ -28,70 +27,48 @@ public class BoardListServlet extends GenericServlet {
       ServletContext servletContext = req.getServletContext();
       ApplicationContext iocContainer =
           (ApplicationContext) servletContext.getAttribute("iocContainer");
-      BoardService boardService = iocContainer.getBean(BoardService.class);
+      MemberService memberService = iocContainer.getBean(MemberService.class);
 
       out.println("<!DOCTYPE html>");
       out.println("<html>");
       out.println("<head>");
       out.println("  <meta charset='UTF-8'>");
-      out.println("  <title>게시글 목록</title>");
+      out.println("  <title>회원 검색</title>");
       out.println("</head>");
       out.println("<body>");
-      out.println("  <h1>게시글</h1>");
-      out.println("  <a href='addForm'>새 글</a><br>");
+      out.println("  <h1>회원 검색 결과</h1>");
       out.println("  <table border='1'>");
       out.println("  <tr>");
       out.println("    <th>번호</th>");
-      out.println("    <th>제목</th>");
+      out.println("    <th>이름</th>");
+      out.println("    <th>이메일</th>");
+      out.println("    <th>전화</th>");
       out.println("    <th>등록일</th>");
-      out.println("    <th>조회수</th>");
       out.println("  </tr>");
 
-      List<Board> boards = boardService.list();
-      for (Board board : boards) {
+      String keyword = req.getParameter("keyword");
+      List<Member> members = memberService.search(keyword);
+      for (Member m : members) {
         out.printf("  <tr>"//
             + "<td>%d</td> "//
             + "<td><a href='detail?no=%d'>%s</a></td> "//
             + "<td>%s</td> "//
-            + "<td>%d</td>"//
+            + "<td>%s</td>"//
+            + "<td>%s</td>"//
             + "</tr>\n", //
-            board.getNo(), //
-            board.getNo(), //
-            board.getTitle(), //
-            board.getDate(), //
-            board.getViewCount() //
+            m.getNo(), //
+            m.getNo(), //
+            m.getName(), //
+            m.getEmail(), //
+            m.getTel(), //
+            m.getRegisteredDate() //
         );
       }
       out.println("</table>");
-
       out.println("</body>");
       out.println("</html>");
     } catch (Exception e) {
       throw new ServletException(e);
     }
-=======
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.List;
-import com.eomcs.lms.domain.Board;
-
-public class BoardListServlet implements Servlet {
-
-  List<Board> boards;
-
-  public BoardListServlet(List<Board> boards) {
-    this.boards = boards;
   }
-
-  @Override
-  public void service(ObjectInputStream in, ObjectOutputStream out) throws Exception {
-    out.writeUTF("OK");
-    out.reset();
-    out.writeObject(boards);
-
->>>>>>> aaaf26f4768e15e5c797d24b77a637e2ae21fe1b
-  }
-
-
-
 }
